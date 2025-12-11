@@ -1,0 +1,6 @@
+[tools]
+opam = "latest"
+rg = "latest"
+
+[env]
+_.source = { path = ".envrc", tools = true }
