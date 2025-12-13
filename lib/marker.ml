@@ -1,8 +1,9 @@
-type t = Todo | Fix | Hack [@@deriving enumerate]
+type t = Todo | Fix | Bug | Hack [@@deriving enumerate]
 
 let info = function
   | Todo -> ("TODO", [])
   | Fix -> ("FIX", [ "FIXME" ])
+  | Bug -> ("BUG", [])
   | Hack -> ("HACK", [])
 
 (* Compile-time check: exhaustiveness *)

@@ -1,9 +1,4 @@
-(* TODOOOO: have rg return all TODO/FIX/HACK *)
 open Muaddept
-
-(* TODO: This is a
-   multi-line comment
-   which I'd like to collect *)
 
 let parse_rg_location (line : string) : int * Todo.location =
   try
@@ -27,50 +22,78 @@ let parse_rg_location (line : string) : int * Todo.location =
   | Not_found -> failwith ("Malformed output (missing delimiters): " ^ line)
   | Failure _ -> failwith ("Invalid integer in line/col: " ^ line)
 
-let match_at (str : string) (pos : int) (prefix : string) : bool =
+let match_at (str : string) (pos : int) (prefix : string) : (int * int) option =
   let len_str = String.length str in
   let len_pre = String.length prefix in
-  if len_str - pos < len_pre then false
+  if len_str - pos < len_pre then None
   else
-    let rec loop i =
-      if i = len_pre then true
-      else if str.[pos + i] <> prefix.[i] then false
-      else loop (i + 1)
-    in
-    loop 0
+    let urgency_char = prefix.[len_pre - 1] in
 
-let parse_rg_line_optimized (line : string) : Todo.t =
+    let rec loop (i : int) (urgency : int) =
+      let current_abs_pos = pos + i in
+
+      if current_abs_pos >= len_str then
+        if i >= len_pre then Some (pos + i, urgency) else None
+      else if i >= len_pre then
+        if str.[pos + i] <> urgency_char then Some (pos + i, urgency)
+        else loop (i + 1) (urgency + 1)
+      else if str.[pos + i] <> prefix.[i] then None
+      else loop (i + 1) 0
+    in
+    loop 0 0
+
+let parse_rg_line (line : string) : Todo.t option =
   let read, location = parse_rg_location line in
 
   let total_len = String.length line in
-  let rec scan current_idx =
-    if current_idx >= total_len then failwith ("No marker found in: " ^ line)
+  let rec scan current_idx : Todo.t option =
+    if current_idx >= total_len then (
+      Printf.printf "No marker found in: %s\n" line;
+      None)
     else
-      match
-        List.find_opt
-          (fun (marker_str, _) -> match_at line current_idx marker_str)
-          Marker.all_strings
-      with
+      let try_match (marker_str, marker) =
+        match match_at line current_idx marker_str with
+        | None -> None
+        | Some (idx_read, urgency) -> Some (idx_read, marker, urgency)
+      in
+      match List.find_map try_match Marker.all_strings with
       | None -> scan (current_idx + 1)
-      | Some (_, marker) ->
-          let msg = String.sub line current_idx (total_len - current_idx) in
-          ({ location; marker; urgency = 0; msg } : Todo.t)
+      | Some (idx_read, marker, urgency) -> (
+          match String.index_from_opt line idx_read ' ' with
+          | None ->
+              Printf.printf "No message on line: %s" line;
+              None
+          | Some idx_space ->
+              let msg =
+                String.trim (String.sub line idx_space (total_len - idx_space))
+              in
+              Some ({ location; marker; urgency; msg } : Todo.t))
   in
 
   scan (read + 1)
 
 let parse_rg_output (lines : string list) : Todo.t list =
-  List.map parse_rg_line_optimized lines
+  List.filter_map parse_rg_line lines
 
 let () =
-  print_endline "Scanning for TODO/FIX/HACKs...";
+  let include_readme = ref false in
+  let specs =
+    [
+      ( "--include-readme",
+        Arg.Set include_readme,
+        "Include README.md in the scan" );
+    ]
+  in
+  Arg.parse specs (fun _ -> ()) "Usage: muaddept [options]";
 
-  match Ripgrep.find_todos () |> Result.map parse_rg_output with
+  print_endline "Scanning for TODOs, FIXes, FIXMEs, BUGs, and HACKs...";
+
+  match Ripgrep.find_todos !include_readme |> Result.map parse_rg_output with
   | Error (Ripgrep.Execution_failed code) ->
       Printf.eprintf "Error: rg exited with code %d\n" code
   | Error (Ripgrep.Launch_failed msg) ->
       Printf.eprintf "Error: Failed to launch rg: %s\n" msg
-  | Ok [] -> Printf.printf "✓ No issues found!\n"
+  | Ok [] -> Printf.eprintf "✓ No issues found!\n"
   | Ok todos ->
       let oc = open_out_gen [ Open_append ] 0o644 "README.md" in
       let fmt = Format.formatter_of_out_channel oc in
