@@ -1,2 +1,5 @@
 (library
- (name muaddept))
+ (name muaddept)
+ (preprocess
+  (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord ppx_enumerate))
+ (libraries unix))
