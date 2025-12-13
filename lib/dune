@@ -1,5 +1,5 @@
 (library
- (name muaddept)
+ (name muaddebt)
  (preprocess
   (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord ppx_enumerate))
  (libraries unix))

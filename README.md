@@ -1,4 +1,4 @@
-# MuadʾDept
+# MuadʾDebt
 
 Run `muaddebt` in your repo and the README.md will get this 👇.
 

@@ -1,6 +1,6 @@
 (executable
- (public_name muaddept)
+ (public_name muaddebt)
  (name main)
  (preprocess
   (pps ppx_deriving.show))
- (libraries muaddept))
+ (libraries muaddebt))

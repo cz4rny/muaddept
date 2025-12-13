@@ -1,4 +1,4 @@
-open Muaddept
+open Muaddebt
 
 let parse_rg_location (line : string) : int * Todo.location =
   try
@@ -84,7 +84,7 @@ let () =
         "Include README.md in the scan" );
     ]
   in
-  Arg.parse specs (fun _ -> ()) "Usage: muaddept [options]";
+  Arg.parse specs (fun _ -> ()) "Usage: muaddebt [options]";
 
   print_endline "Scanning for TODOs, FIXes, FIXMEs, BUGs, and HACKs...";
 

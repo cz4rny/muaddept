@@ -1,22 +1,22 @@
 (lang dune 3.17)
 
-(name muaddept)
+(name muaddebt)
 
 (generate_opam_files true)
 
 (source
- (github cz4rny/muaddept))
+ (github cz4rny/muaddebt))
 
-(authors "Cezary Krzyżanowski <muaddept@thezenofit.com")
+(authors "Cezary Krzyżanowski <muaddebt@thezenofit.com")
 
-(maintainers "Cezary Krzyżanowski <muaddept@thezenofit.com")
+(maintainers "Cezary Krzyżanowski <muaddebt@thezenofit.com")
 
 ; (license LICENSE)
 ;
 ; (documentation https://url/to/documentation)
 
 (package
- (name muaddept)
+ (name muaddebt)
  (synopsis "A short synopsis")
  (description "A longer description")
  (depends
